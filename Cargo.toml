@@ -1,6 +1,6 @@
 [package]
 name = "tracker"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -9,4 +9,4 @@ edition = "2021"
 mouse-rs = "0.4.2"
 crossterm = "0.24.0"
 clap = "3.2.8"
-winit = "0.26.1"
+lsl = "0.1.1"
