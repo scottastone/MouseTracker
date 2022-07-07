@@ -2,6 +2,47 @@ use std::thread;
 use std::time::{Duration, Instant};
 use mouse_rs::Mouse;
 use crossterm::{event::{read, poll, Event, KeyCode}};
+use clap::{Arg, App};
+
+fn main() -> () {
+    let matches = App::new("My Test Program")
+        .version("0.0.1")
+        .author("Scott Stone <scott.allan.stone@gmail.com>")
+        .about("Mouse tracking, but in Rust!")
+        .arg(Arg::with_name("samplerate")
+                 .short('s')
+                 .long("hertz")
+                 .takes_value(false)
+                 .default_missing_value(&"100".to_string())
+                 .help("Mouse sampling rate."))
+        .get_matches();
+
+    let sr = matches.value_of("samplerate").unwrap_or("100").parse::<u64>().unwrap();
+
+    let sample_rate: u64 = sr; // Hz;
+    let update_delay_ms: u64 = 1000 / sample_rate;
+
+    let mouse: Mouse = Mouse::new();
+    let it: Instant = std::time::Instant::now();
+    let mut sample_count: u64 = 0;
+    let mut data: Vec<MousePosition> = Vec::new();
+
+    loop {
+        let mouse_pos = MousePosition::update(&mouse, it);
+        sample_count += 1;
+
+        println!(" > Count:{sc:>6} Time:{ts:>7} X:{x:>5} Y:{y:>5}",
+            sc = sample_count,
+            ts = mouse_pos.timestamp,
+            x  = mouse_pos.x,
+            y  = mouse_pos.y); 
+
+        data.push(mouse_pos);
+        event_handler();
+        
+        thread::sleep(Duration::from_micros(update_delay_ms * 1000));
+    }
+}
 
 enum State {
     Exit,
@@ -94,28 +135,3 @@ fn event_handler() -> () {
     }
 }
 
-fn main() -> () {
-    const SAMPLE_RATE: u64 = 100;
-    const UPDATE_DELAY_MS: u64 = 1000 / SAMPLE_RATE;
-
-    let mouse: Mouse = Mouse::new();
-    let it: Instant = std::time::Instant::now();
-    let mut sample_count: u64 = 0;
-    let mut data: Vec<MousePosition> = Vec::new();
-
-    loop {
-        let mouse_pos = MousePosition::update(&mouse, it);
-        sample_count += 1;
-
-        println!("Count:{sc:>6} Time:{ts:>7} X:{x:>5} Y:{y:>5}",
-            sc = sample_count,
-            ts = mouse_pos.timestamp,
-            x  = mouse_pos.x,
-            y  = mouse_pos.y); 
-
-        data.push(mouse_pos);
-        event_handler();
-        
-        thread::sleep(Duration::from_millis(UPDATE_DELAY_MS));
-    }
-}
