@@ -3,9 +3,10 @@ use std::time::{Duration, Instant};
 use mouse_rs::Mouse;
 use crossterm::{event::{read, poll, Event, KeyCode}};
 use clap::{Arg, App};
+use winit;
 
 fn main() -> () {
-    let matches = App::new("My Test Program")
+    let matches = App::new("Mouse Tracker")
         .version("0.0.1")
         .author("Scott Stone <scott.allan.stone@gmail.com>")
         .about("Mouse tracking, but in Rust!")
