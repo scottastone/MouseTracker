@@ -50,18 +50,25 @@ fn main() -> () {
                  .takes_value(false)
                  .default_missing_value(&"100".to_string())
                  .help("Mouse sampling rate."))
-
-       /*  .arg(Arg::with_name("lsl")
+        .arg(Arg::with_name("lsl")
                  .short('l')
-                 .long('LSL')
+                 .long("LSL")
                  .takes_value(false)
-                 .default_missing_value(true)
-                 .help("Enable LSL streaming. On by default.")) */
-
+                 .default_missing_value(&"1".to_string())
+                 .help("Enable LSL streaming. On by default."))
         .get_matches();
     
     let sr = matches.value_of("samplerate").unwrap_or("100").parse::<u64>().unwrap();
-    
+    unsafe {
+        let lsl_enable_value = matches.value_of("lsl").unwrap_or("1").parse::<u64>().unwrap();
+        if lsl_enable_value == 1 {
+            LSL_ENABLE = true;
+        }
+        else {
+            LSL_ENABLE = false;
+        }
+    }
+
     let sample_rate: u64 = sr; // Hz;
     let update_delay_ms: u64 = 1000 / sample_rate;
 
@@ -77,7 +84,7 @@ fn main() -> () {
     let mouse: Mouse = Mouse::new();
     let it: Instant = std::time::Instant::now();
     let mut sample_count: u64 = 0;
-    let mut data: Vec<MousePosition> = Vec::new();
+    //let mut data: Vec<MousePosition> = Vec::new();
 
     loop {
         // Handle events - check if we need to quit etc
