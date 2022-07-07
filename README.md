@@ -6,7 +6,7 @@ Simply tracks the X,Y position of the cursor on the screen. Ability to save (com
 ## Run
 `cargo b`
 
-`./tracker -s <samplerate>  //(default is 100)
+`./tracker -s <samplerate>  //(default is 100)`
 
 ## TODOs:
 - [ ] Add save functionality
