@@ -6,9 +6,10 @@ Simply tracks the X,Y position of the cursor on the screen. Ability to save (com
 ## Run
 `cargo b`
 
-`./tracker -s <samplerate>  //(default is 100)`
+`./tracker -s <samplerate>  -l 1`
 
 ## TODOs:
 - [ ] Add save functionality
-- [ ] Add LSL for synchronization
+- [ ] Ability to change sample rate on the fly
+- [x] Add LSL for synchronization
 - [x] Change sample rate through command line arguments

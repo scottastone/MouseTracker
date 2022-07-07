@@ -8,13 +8,6 @@ use lsl::{self, Pushable};
 static mut LSL_ENABLE: bool = true;
 static mut DEBUG_OUTPUT: bool = true;
 
-enum State {
-    Exit,
-    Pause,
-    Save,
-    None,
-}
-
 struct MousePosition {
     timestamp: u128,
     x: i32, 
@@ -80,11 +73,8 @@ fn main() -> () {
                         lsl::ChannelFormat::Int32,
                         "mouseoutlet1");
     
-
     let mouse: Mouse = Mouse::new();
     let it: Instant = std::time::Instant::now();
-    let mut sample_count: u64 = 0;
-    //let mut data: Vec<MousePosition> = Vec::new();
 
     loop {
         // Handle events - check if we need to quit etc
@@ -92,9 +82,8 @@ fn main() -> () {
 
         // Update mouse position
         let mouse_pos = MousePosition::update(&mouse, it);
-        sample_count += 1;
 
-        // Send data over LSL, if necessary
+        // Send data over LSL, if wanted
         unsafe {  
             if LSL_ENABLE {
                 send_lsl(&outlet, &mouse_pos).unwrap();
@@ -104,16 +93,15 @@ fn main() -> () {
         // Print the data to the console
         unsafe {
             if DEBUG_OUTPUT == true {
-                let console_string = format!(" > Count:{:>6} Time:{:>7} X:{:>5} Y:{:>5}\t{:>5}",
-                        sample_count,
-                        mouse_pos.timestamp,
+                let console_string = format!(" > {:<5.2}s ({:>5},{:<4}) {:>5} [{:>4}hz]",
+                        mouse_pos.timestamp as f64 / 1000 as f64,
                         mouse_pos.x,
                         mouse_pos.y,
-                        check_lsl_enabled());
+                        check_lsl_enabled(),
+                        sr);
                 println!("{console_string}");
             }
         }
-        // data.push(mouse_pos);
         
         thread::sleep(Duration::from_micros(update_delay_ms * 1000)); // adjust to microseconds for more accuracy due to rounding errors
     }
@@ -129,17 +117,16 @@ fn send_lsl(outlet: &lsl::StreamOutlet, data: &MousePosition) -> std::io::Result
     }
 }
 
-fn check_lsl_enabled() -> &'static str {
-    unsafe {
-        let lsl_enable_str: &str;
-        if LSL_ENABLE == true {
-            lsl_enable_str = "[+lsl]";
-        }
-        else {
-            lsl_enable_str = "[-lsl]";
-        }
-        return lsl_enable_str;
+unsafe fn check_lsl_enabled() -> &'static str {
+    let lsl_enable_str: &str;
+    if LSL_ENABLE == true {
+        lsl_enable_str = "[+lsl]";
     }
+    else {
+        lsl_enable_str = "[-lsl]";
+    }
+    return lsl_enable_str;
+
 }
 
 fn setup_lsl(stream_name: &str,
@@ -164,68 +151,42 @@ fn setup_lsl(stream_name: &str,
 
 fn get_events() -> KeyCode {
     if poll(Duration::from_millis(0)).unwrap() {
-        let ev = read().unwrap();
-        match ev {
-            Event::Key(key) => {
-                return key.code;
-            }
-            _ => {todo!("Handle other events");}
+        let ev: Event = read().unwrap();
+        if let Event::Key(key) = ev {
+            return key.code;
         }
     }
     return KeyCode::Null; // default value
 }
 
-fn keycode_handler(key: KeyCode) -> State {
+fn keycode_handler(key: KeyCode) {
     match key {
-        KeyCode::Esc => {
-            return State::Exit;
-        }
-        KeyCode::Char('q') => {
-            return State::Exit;
+        KeyCode::Esc | KeyCode::Char('q') => {
+            println!(" >>> Exiting!\n");
+            std::process::exit(0);
         }
         KeyCode::Char('p') => {
-            return State::Pause;
+            println!(" >>> Pausing, press a key to continue ...");
+            let _ = read(); // blocking
         }
         KeyCode::Char('s') => {
-            return State::Save;
+            println!("TODO: implement sample rate changes.");
         }
         KeyCode::Char('l') => {
             unsafe {
                 LSL_ENABLE ^= true;
-                println!(" > LSL output enabled: {:?}", &LSL_ENABLE);
+                println!(" >>> LSL output enabled: {:?}", &LSL_ENABLE);
             }
-            return State::None;
         }
         KeyCode::Char('d') => {
             unsafe {
                 DEBUG_OUTPUT ^= true;
                 if DEBUG_OUTPUT == false {
-                    println!(" > Display mode off. Press 'd' to turn display mode on.");
+                    println!(" >>> Display mode off. Press 'd' to turn display mode on.");
                 }
             }
-            return State::None;
-
         }
         _ => {
-            return State::None;
-        }
-    }
-}
-
-fn state_handler(state: State) -> () {
-    match state {
-        State::Exit => {
-            println!("Exiting...");
-            std::process::exit(0);
-        }
-        State::Pause => {
-            println!("Pausing, press a key to continue...");
-            let _ = read(); // blocking
-        }
-        State::Save => {
-            println!("Saving...");
-        }
-        State::None => {
             // do nothing
         }
     }
@@ -235,7 +196,6 @@ fn event_handler() -> () {
     let keycode = get_events();
     if keycode != KeyCode::Null {
         //println!("Keycode: {:?}", keycode);
-        state_handler(keycode_handler(keycode));
+        keycode_handler(keycode);
     }
 }
-
