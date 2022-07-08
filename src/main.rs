@@ -51,7 +51,7 @@ fn main() -> () {
                  .help("Enable LSL streaming. On by default."))
         .get_matches();
     
-    let sr = matches.value_of("samplerate").unwrap_or("100").parse::<u64>().unwrap();
+    let sr = matches.value_of("samplerate").unwrap_or("100").parse::<f64>().unwrap();
     unsafe {
         let lsl_enable_value = matches.value_of("lsl").unwrap_or("1").parse::<u64>().unwrap();
         if lsl_enable_value == 1 {
@@ -62,14 +62,14 @@ fn main() -> () {
         }
     }
 
-    let sample_rate: u64 = sr; // Hz;
-    let update_delay_ms: u64 = 1000 / sample_rate;
+    let sample_rate: f64 = sr; // Hz;
+    let update_delay_ms: u64 = (1000 as f64 / sample_rate).round() as u64;
 
     let outlet = setup_lsl(
                         "Mouse Tracker",
                         "Mouse",
                         2,
-                        sr as f64,
+                        sr,
                         lsl::ChannelFormat::Int32,
                         "mouseoutlet1");
     
@@ -166,11 +166,12 @@ fn keycode_handler(key: KeyCode) {
             std::process::exit(0);
         }
         KeyCode::Char('p') => {
-            println!(" >>> Pausing, press a key to continue ...");
+            println!(" >>> Paused, press a key to continue.");
             let _ = read(); // blocking
+            println!(" >>> Unpaused.");
         }
         KeyCode::Char('s') => {
-            println!("TODO: implement sample rate changes.");
+            println!("TODO: implement sample rate changes."); // no need to panic
         }
         KeyCode::Char('l') => {
             unsafe {
