@@ -41,7 +41,6 @@ fn main() -> () {
                  .short('s')
                  .long("hertz")
                  .takes_value(false)
-                 .default_missing_value(&"100".to_string())
                  .help("Mouse sampling rate."))
         .arg(Arg::with_name("lsl")
                  .short('l')
@@ -51,9 +50,9 @@ fn main() -> () {
                  .help("Enable LSL streaming. On by default."))
         .get_matches();
     
-    let sr = matches.value_of("samplerate").unwrap_or("100").parse::<f64>().unwrap();
+    let sr = matches.value_of("samplerate").unwrap_or("120").parse::<f64>().unwrap();
+    let lsl_enable_value = matches.value_of("lsl").unwrap_or("1").parse::<u64>().unwrap();
     unsafe {
-        let lsl_enable_value = matches.value_of("lsl").unwrap_or("1").parse::<u64>().unwrap();
         if lsl_enable_value == 1 {
             LSL_ENABLE = true;
         }
@@ -107,6 +106,7 @@ fn main() -> () {
     }
 }
 
+// Send data over LSL
 fn send_lsl(outlet: &lsl::StreamOutlet, data: &MousePosition) -> std::io::Result<()> {
     unsafe {
         if LSL_ENABLE {
@@ -117,6 +117,8 @@ fn send_lsl(outlet: &lsl::StreamOutlet, data: &MousePosition) -> std::io::Result
     }
 }
 
+// Check if LSL is enabled
+// NOTE: this just makes it easier to debug, as it's easy to see if LSL is enabled or not
 unsafe fn check_lsl_enabled() -> &'static str {
     let lsl_enable_str: &str;
     if LSL_ENABLE == true {
@@ -129,6 +131,7 @@ unsafe fn check_lsl_enabled() -> &'static str {
 
 }
 
+// Setup the LSL stream helper function
 fn setup_lsl(stream_name: &str,
              stream_type: &str,
              channel_count: u32,
@@ -149,6 +152,7 @@ fn setup_lsl(stream_name: &str,
     return outlet
 }
 
+// Handle events - check if we need to quit etc
 fn get_events() -> KeyCode {
     if poll(Duration::from_millis(0)).unwrap() {
         let ev: Event = read().unwrap();
@@ -159,6 +163,7 @@ fn get_events() -> KeyCode {
     return KeyCode::Null; // default value
 }
 
+// Handle events - check if we need to quit etc
 fn keycode_handler(key: KeyCode) {
     match key {
         KeyCode::Esc | KeyCode::Char('q') => {
@@ -171,7 +176,7 @@ fn keycode_handler(key: KeyCode) {
             println!(" >>> Unpaused.");
         }
         KeyCode::Char('s') => {
-            println!("TODO: implement sample rate changes."); // no need to panic
+            println!(" >>> TODO: implement sample rate changes."); // no need to panic
         }
         KeyCode::Char('l') => {
             unsafe {
@@ -193,10 +198,10 @@ fn keycode_handler(key: KeyCode) {
     }
 }
 
+// Handle events - check if we need to quit etc
 fn event_handler() -> () {
     let keycode = get_events();
     if keycode != KeyCode::Null {
-        //println!("Keycode: {:?}", keycode);
         keycode_handler(keycode);
     }
 }
