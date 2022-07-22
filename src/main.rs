@@ -117,8 +117,7 @@ fn send_lsl(outlet: &lsl::StreamOutlet, data: &MousePosition) -> std::io::Result
     }
 }
 
-// Check if LSL is enabled
-// NOTE: this just makes it easier to debug, as it's easy to see if LSL is enabled or not
+// Check if LSL is enabled - adds to the console output if it is
 unsafe fn check_lsl_enabled() -> &'static str {
     let lsl_enable_str: &str;
     if LSL_ENABLE == true {
@@ -148,7 +147,7 @@ fn setup_lsl(stream_name: &str,
             source_id)
             .unwrap();
 
-    let outlet = lsl::StreamOutlet::new(&info, 0,360).unwrap();
+    let outlet = lsl::StreamOutlet::new(&info, 0, 360).unwrap();
     return outlet
 }
 
