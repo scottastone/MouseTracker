@@ -39,8 +39,8 @@ fn main() -> () {
         .about("Mouse tracking, but in Rust!")
         .arg(Arg::with_name("samplerate")
                  .short('s')
-                 .long("hertz")
-                 .takes_value(false)
+                 .long("samplerate")
+                 .takes_value(true)
                  .help("Mouse sampling rate."))
         .arg(Arg::with_name("lsl")
                  .short('l')
@@ -93,7 +93,7 @@ fn main() -> () {
         unsafe {
             if DEBUG_OUTPUT == true {
                 let console_string = format!(" > {:<5.2}s ({:>5},{:<4}) {:>5} [{:>4}hz]",
-                        mouse_pos.timestamp as f64 / 1000 as f64,
+                        mouse_pos.timestamp as f64 / 1000., 
                         mouse_pos.x,
                         mouse_pos.y,
                         check_lsl_enabled(),
