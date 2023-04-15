@@ -41,7 +41,7 @@ fn main() -> () {
                  .short('s')
                  .long("samplerate")
                  .takes_value(true)
-                 .help("Mouse sampling rate."))
+                 .help("Mouse sampling rate. Default is 120Hz."))
         .arg(Arg::with_name("lsl")
                  .short('l')
                  .long("LSL")
